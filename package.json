@@ -1,0 +1,21 @@
+{
+  "name": "flex-micro",
+  "version": "1.0.0",
+  "description": "This is a coding test",
+  "main": "handler.js",
+  "scripts": {
+    "local:login": "sls invoke local -f login -p ./mocks/login.event.json",
+    "local:addStu": "sls invoke local -f addStudent -p ./mocks/add-student.event.json",
+    "local:removeStu": "sls invoke local -f removeStudent -p ./mocks/remove-student.event.json",
+    "local:create": "sls invoke local -f create -p ./mocks/login.event.json",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "test"
+  ],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "aws-sdk": "^2.1688.0"
+  }
+}

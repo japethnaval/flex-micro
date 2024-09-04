@@ -1,0 +1,104 @@
+service: flex-micro
+
+custom:
+  stage: ${opt:stage, self:provider.stage, 'dev'}
+  secrets: ${settings-${self:custom.stage}.yml}
+
+provider:
+  name: aws
+  region: us-east-1
+  versionFunctions: false
+  runtime: nodejs16.x
+  timeout: 120
+
+  iamRoleStatements:
+    - Effect: Allow
+      Action:
+        - DynamoDB:Query
+        - DynamoDB:Scan
+        - DynamoDB:UpdateItem
+        - DynamoDB:GetItem
+        - DynamoDB:PutItem
+      Resource:
+        - { "Fn::GetAtt": ["teacherstable", "Arn"] }
+        - { "Fn::GetAtt": ["studentstable", "Arn"] }
+        - { "Fn::GetAtt": ["tokenstable", "Arn"] }
+
+  environment:
+    NODE_ENV: ${self:custom.stage}
+    TEACHERS_TABLE: teachers1-${self:custom.stage}
+    TOKENS_TABLE: tokens-${self:custom.stage}
+    STUDENTS_TABLE: students-${self:custom.stage}
+
+package:
+  exclude:
+    - test/**
+    - node_modules/aws-sdk/**
+
+functions:
+  login:
+    handler: handler.login
+    events:
+      - http:
+          method: POST
+          path: /login
+  addStudent:
+    handler: handler.addStudent
+    events:
+      - http:
+          method: POST
+          path: /add-student
+  removeStudent:
+    handler: handler.removeStudent
+    events:
+      - http:
+          method: DELETE
+          path: /remove-student
+  getStudents:
+    handler: handler.getStudents
+    events:
+      - http:
+          method: GET
+          path: /students
+
+resources:
+  Resources:
+    teacherstable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: "teachers1-${self:custom.stage}"
+        AttributeDefinitions:
+          - AttributeName: email
+            AttributeType: S
+        KeySchema:
+          - AttributeName: email
+            KeyType: HASH
+        ProvisionedThroughput:
+          ReadCapacityUnits: 5
+          WriteCapacityUnits: 3
+    studentstable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: "students-${self:custom.stage}"
+        AttributeDefinitions:
+          - AttributeName: id
+            AttributeType: S
+        KeySchema:
+          - AttributeName: id
+            KeyType: HASH
+        ProvisionedThroughput:
+          ReadCapacityUnits: 5
+          WriteCapacityUnits: 3
+    tokenstable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: "tokens-${self:custom.stage}"
+        AttributeDefinitions:
+          - AttributeName: id
+            AttributeType: S
+        KeySchema:
+          - AttributeName: id
+            KeyType: HASH
+        ProvisionedThroughput:
+          ReadCapacityUnits: 5
+          WriteCapacityUnits: 3
