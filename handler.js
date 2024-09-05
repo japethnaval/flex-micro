@@ -14,13 +14,13 @@ module.exports.login = async (event, context, callback) => {
   const { data: payload } = event.body ? JSON.parse(event.body) : {};
 
   const poolData = {
-    UserPoolId: "us-east-1_aXGME4ZDy",
-    ClientId: "6kn1nj8ml3tajdc06pfj34sm65",
+    UserPoolId: process.env.USER_POOL_ID,
+    ClientId: process.env.CLIENT_ID,
   };
   const userPool = new CognitoUserPool(poolData);
 
   AWS.config.credentials = new AWS.CognitoIdentityCredentials({
-    IdentityPoolId: "us-east-1_aXGME4ZDy",
+    IdentityPoolId: process.env.USER_POOL_ID,
   });
 
   const authenticationData = {
