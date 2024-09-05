@@ -1,12 +1,19 @@
-module.exports.makeId = (length) => {
-  let result = "";
-  const characters =
-    "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-  const charactersLength = characters.length;
-  let counter = 0;
-  while (counter < length) {
-    result += characters.charAt(Math.floor(Math.random() * charactersLength));
-    counter += 1;
-  }
-  return result;
+module.exports.cognitoAuthenticate = async (
+  cognitoUser,
+  cognitoAuthenticationDetails
+) => {
+  return new Promise(function (resolve, reject) {
+    cognitoUser.authenticateUser(cognitoAuthenticationDetails, {
+      onSuccess: resolve,
+      onFailure: reject,
+      newPasswordRequired: resolve,
+    });
+  });
+};
+
+module.exports.defaultHeaders = {
+  "Access-Control-Allow-Headers":
+    "Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token",
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Methods": "*",
 };

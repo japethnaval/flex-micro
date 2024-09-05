@@ -1,8 +1,8 @@
-service: flex-micro
+service: flexi-micro-v1
 
 custom:
   stage: ${opt:stage, self:provider.stage, 'dev'}
-  secrets: ${settings-${self:custom.stage}.yml}
+  secrets: ${file(settings-${self:custom.stage}.yml)}
 
 provider:
   name: aws
@@ -19,16 +19,17 @@ provider:
         - DynamoDB:UpdateItem
         - DynamoDB:GetItem
         - DynamoDB:PutItem
+        - DynamoDB:DeleteItem
       Resource:
         - { "Fn::GetAtt": ["teacherstable", "Arn"] }
         - { "Fn::GetAtt": ["studentstable", "Arn"] }
-        - { "Fn::GetAtt": ["tokenstable", "Arn"] }
 
   environment:
     NODE_ENV: ${self:custom.stage}
-    TEACHERS_TABLE: teachers1-${self:custom.stage}
-    TOKENS_TABLE: tokens-${self:custom.stage}
-    STUDENTS_TABLE: students-${self:custom.stage}
+    TEACHERS_TABLE: teachers-tbl-${self:custom.stage}
+    STUDENTS_TABLE: students-tbl-${self:custom.stage}
+    USER_POOL_ID: ${self:custom.secrets.USER_POOL_ID}
+    CLIENT_ID: ${self:custom.secrets.CLIENT_ID}
 
 package:
   exclude:
@@ -42,31 +43,71 @@ functions:
       - http:
           method: POST
           path: /login
+          cors:
+            origin: "*"
+            headers:
+              - Content-Type
+              - X-Amz-Date
+              - Authorization
+              - X-Api-Key
+              - X-Amz-Security-Token
+              - X-Amz-User-Agent
+              - X-Amzn-Trace-Id
   addStudent:
     handler: handler.addStudent
     events:
       - http:
           method: POST
           path: /add-student
+          cors:
+            origin: "*"
+            headers:
+              - Content-Type
+              - X-Amz-Date
+              - Authorization
+              - X-Api-Key
+              - X-Amz-Security-Token
+              - X-Amz-User-Agent
+              - X-Amzn-Trace-Id
   removeStudent:
     handler: handler.removeStudent
     events:
       - http:
-          method: DELETE
+          method: POST
           path: /remove-student
+          cors:
+            origin: "*"
+            headers:
+              - Content-Type
+              - X-Amz-Date
+              - Authorization
+              - X-Api-Key
+              - X-Amz-Security-Token
+              - X-Amz-User-Agent
+              - X-Amzn-Trace-Id
   getStudents:
     handler: handler.getStudents
     events:
       - http:
           method: GET
           path: /students
+          cors:
+            origin: "*"
+            headers:
+              - Content-Type
+              - X-Amz-Date
+              - Authorization
+              - X-Api-Key
+              - X-Amz-Security-Token
+              - X-Amz-User-Agent
+              - X-Amzn-Trace-Id
 
 resources:
   Resources:
     teacherstable:
       Type: AWS::DynamoDB::Table
       Properties:
-        TableName: "teachers1-${self:custom.stage}"
+        TableName: "teachers-tbl-${self:custom.stage}"
         AttributeDefinitions:
           - AttributeName: email
             AttributeType: S
@@ -79,20 +120,7 @@ resources:
     studentstable:
       Type: AWS::DynamoDB::Table
       Properties:
-        TableName: "students-${self:custom.stage}"
-        AttributeDefinitions:
-          - AttributeName: id
-            AttributeType: S
-        KeySchema:
-          - AttributeName: id
-            KeyType: HASH
-        ProvisionedThroughput:
-          ReadCapacityUnits: 5
-          WriteCapacityUnits: 3
-    tokenstable:
-      Type: AWS::DynamoDB::Table
-      Properties:
-        TableName: "tokens-${self:custom.stage}"
+        TableName: "students-tbl-${self:custom.stage}"
         AttributeDefinitions:
           - AttributeName: id
             AttributeType: S
